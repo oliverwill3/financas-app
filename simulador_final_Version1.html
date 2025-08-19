@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Financeiro</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 50px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 1300px;
+            text-align: center;
+        }
+        h1 {
+            color: #0056b3;
+            margin-bottom: 1.5rem;
+        }
+        nav {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        nav button {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        nav button.active, nav button:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .config-panel, .notes-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #e2e6ea;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: left;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .config-panel h2, .notes-panel h2 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+        .config-group, .notes-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        .config-group label, .notes-group label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .config-group input, .notes-group input, .notes-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .summary-panels {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .panel {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1.2em;
+            font-weight: bold;
+            flex: 1;
+            margin: 5px;
+            min-width: 200px;
+        }
+        .final-balance-panel {
+            color: #008000;
+        }
+        .final-meta-panel {
+            color: #1a73e8;
+        }
+        .performance-panel {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1.2em;
+            font-weight: bold;
+            flex: 1;
+            margin: 5px;
+        }
+        #performance-display {
+            transition: color 0.3s ease;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        thead th {
+            background-color: #0056b3;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .input-cell-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        .adjust-button {
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .adjust-button:hover {
+            background-color: #0056b3;
+        }
+        .daily-result-input {
+            width: 80px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px;
+        }
+        .daily-diff-cell {
+            font-weight: bold;
+            color: #333;
+        }
+        .hidden-value {
+            color: transparent !important;
+            background-color: #ccc !important;
+            border-radius: 4px;
+            pointer-events: none;
+            user-select: none;
+        }
+        #toggle-values {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #333;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        #toggle-values:hover {
+            background-color: #ddd;
+        }
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        /* Responsivo */
+        @media (max-width: 900px) {
+            .summary-panels {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .panel {
+                min-width: unset;
+            }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 0.5rem;
+            }
+            table th, table td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador Financeiro</h1>
+        <nav>
+            <button id="show-main-page" class="active">Simulador</button>
+            <button id="show-config-page">Configurações</button>
+            <button id="show-notes-page">Anotações</button>
+        </nav>
+        <!-- Página Simulador -->
+        <div id="main-page">
+            <div class="summary-panels">
+                <div class="panel final-balance-panel">
+                    <span>Saldo Final Real:</span>
+                    <span id="final-balance-display">R$ 0,00</span>
+                </div>
+                <div class="panel final-meta-panel">
+                    <span>Saldo Final de Meta:</span>
+                    <span id="final-meta-display">R$ 0,00</span>
+                </div>
+                <div class="panel performance-panel">
+                    <span>Performance Acumulada:</span>
+                    <span id="performance-display">R$ 0,00</span>
+                </div>
+            </div>
+            <button id="toggle-values">Esconder Valores</button>
+            <table id="simulation-table">
+                <thead>
+                    <tr>
+                        <th>Dia</th>
+                        <th>Saldo Inicial</th>
+                        <th>Ganho/Perda Meta</th>
+                        <th>Resultado do Dia</th>
+                        <th>Diferença da Meta</th>
+                        <th>Status do Dia</th>
+                        <th>Saldo Final</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <!-- Página Configurações -->
+        <div id="config-page" class="hidden">
+            <div class="config-panel">
+                <h2>Configurações</h2>
+                <div class="config-group">
+                    <label for="initial-balance">Saldo Inicial:</label>
+                    <input type="number" id="initial-balance" value="200">
+                </div>
+                <div class="config-group">
+                    <label for="num-days">Número de Dias:</label>
+                    <input type="number" id="num-days" value="10">
+                </div>
+                <div class="config-group">
+                    <label for="gain-rate">Meta de Ganho Diário (%):</label>
+                    <input type="number" id="gain-rate" value="20">
+                </div>
+                <div class="config-group">
+                    <label for="loss-rate">Limite de Perda Diária (%):</label>
+                    <input type="number" id="loss-rate" value="10">
+                </div>
+            </div>
+        </div>
+        <!-- Página Anotações -->
+        <div id="notes-page" class="hidden">
+            <div class="notes-panel">
+                <h2>Bloco de Anotações</h2>
+                <p>Aqui você pode anotar suas estratégias e pensamentos. Clique em salvar para guardar no navegador.</p>
+                <div class="notes-group">
+                    <label for="note-title">Título da Anotação:</label>
+                    <input type="text" id="note-title" placeholder="Ex: Estratégia da Semana">
+                </div>
+                <div class="notes-group">
+                    <label for="note-content">Conteúdo:</label>
+                    <textarea id="note-content" rows="8" placeholder="Digite sua anotação aqui..."></textarea>
+                </div>
+                <button id="save-note">Salvar Anotação</button>
+                <div id="note-status-message" class="status-message"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Navegação
+            const mainPage = document.getElementById('main-page');
+            const configPage = document.getElementById('config-page');
+            const notesPage = document.getElementById('notes-page');
+            const showMainButton = document.getElementById('show-main-page');
+            const showConfigButton = document.getElementById('show-config-page');
+            const showNotesButton = document.getElementById('show-notes-page');
+            function showPage(page) {
+                mainPage.classList.add('hidden');
+                configPage.classList.add('hidden');
+                notesPage.classList.add('hidden');
+                showMainButton.classList.remove('active');
+                showConfigButton.classList.remove('active');
+                showNotesButton.classList.remove('active');
+                page.classList.remove('hidden');
+            }
+            showMainButton.addEventListener('click', () => {
+                showPage(mainPage);
+                showMainButton.classList.add('active');
+            });
+            showConfigButton.addEventListener('click', () => {
+                showPage(configPage);
+                showConfigButton.classList.add('active');
+            });
+            showNotesButton.addEventListener('click', () => {
+                showPage(notesPage);
+                showNotesButton.classList.add('active');
+                loadNote();
+            });
+
+            // Inputs e displays principais
+            const initialBalanceInput = document.getElementById('initial-balance');
+            const numDaysInput = document.getElementById('num-days');
+            const gainRateInput = document.getElementById('gain-rate');
+            const lossRateInput = document.getElementById('loss-rate');
+            const tableBody = document.querySelector('#simulation-table tbody');
+            const finalBalanceDisplay = document.getElementById('final-balance-display');
+            const finalMetaDisplay = document.getElementById('final-meta-display');
+            const performanceDisplay = document.getElementById('performance-display');
+            const toggleValuesButton = document.getElementById('toggle-values');
+            let valuesHidden = false;
+
+            // Notas
+            const noteTitleInput = document.getElementById('note-title');
+            const noteContentInput = document.getElementById('note-content');
+            const saveNoteButton = document.getElementById('save-note');
+            const noteStatusMessage = document.getElementById('note-status-message');
+
+            // Função para formatar números como moeda
+            const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+            const updateAllCalculations = () => {
+                const rows = tableBody.querySelectorAll('tr');
+                let currentBalance = parseFloat(initialBalanceInput.value) || 0;
+                let currentMetaBalance = parseFloat(initialBalanceInput.value) || 0;
+                let diferencaAcumulada = 0;
+                const dailyGainRate = (parseFloat(gainRateInput.value) || 0) / 100;
+                const dailyLossRate = (parseFloat(lossRateInput.value) || 0) / 100;
+
+                rows.forEach(row => {
+                    const saldoInicialReal = currentBalance;
+                    const saldoInicialMeta = currentMetaBalance;
+                    const dailyResultInput = row.querySelector('.daily-result-input');
+                    const resultadoDoDia = parseFloat(dailyResultInput.value);
+                    const ganhoMetaDoDia = saldoInicialMeta * dailyGainRate;
+                    let diferencaDaMeta = 0;
+                    let status = '';
+                    if (!isNaN(resultadoDoDia)) {
+                        diferencaDaMeta = resultadoDoDia - ganhoMetaDoDia;
+                        diferencaAcumulada += diferencaDaMeta;
+                        if (resultadoDoDia < -Math.abs(saldoInicialMeta * dailyLossRate)) {
+                            status = 'Stop-loss';
+                        } else if (diferencaDaMeta >= 0) {
+                            status = 'OK';
+                        } else {
+                            status = 'Déficit';
+                        }
+                    } else {
+                        status = '-';
+                    }
+                    const saldoFinalReal = saldoInicialReal + (isNaN(resultadoDoDia) ? 0 : resultadoDoDia);
+                    const saldoFinalMeta = saldoInicialMeta + ganhoMetaDoDia;
+
+                    row.querySelector('.initial-balance-cell').textContent = formatCurrency(saldoInicialReal);
+                    row.querySelector('.meta-gain-cell').textContent = formatCurrency(ganhoMetaDoDia);
+                    row.querySelector('.daily-diff-cell').textContent = isNaN(resultadoDoDia) ? '-' : formatCurrency(diferencaDaMeta);
+                    row.querySelector('.status-cell').textContent = status;
+
+                    const statusCell = row.querySelector('.status-cell');
+                    if (status === 'OK') {
+                        statusCell.style.color = '#008000';
+                    } else if (status === 'Déficit') {
+                        statusCell.style.color = '#dc3545';
+                    } else if (status === 'Stop-loss') {
+                        statusCell.style.color = '#ff6600';
+                    } else {
+                        statusCell.style.color = '#333';
+                    }
+
+                    row.querySelector('.final-balance-cell').textContent = formatCurrency(saldoFinalReal);
+
+                    currentBalance = saldoFinalReal;
+                    currentMetaBalance = saldoFinalMeta;
+                });
+
+                finalBalanceDisplay.textContent = formatCurrency(currentBalance);
+                finalMetaDisplay.textContent = formatCurrency(currentMetaBalance);
+                performanceDisplay.textContent = formatCurrency(diferencaAcumulada);
+
+                if (diferencaAcumulada >= 0) {
+                    performanceDisplay.style.color = '#008000';
+                } else {
+                    performanceDisplay.style.color = '#dc3545';
+                }
+
+                // Atualiza visualização de valores escondidos
+                document.querySelectorAll('.initial-balance-cell, .final-balance-cell, .daily-diff-cell, .meta-gain-cell').forEach(cell => {
+                    if (valuesHidden) cell.classList.add('hidden-value');
+                    else cell.classList.remove('hidden-value');
+                });
+                [finalBalanceDisplay, finalMetaDisplay, performanceDisplay].forEach(el => {
+                    if (valuesHidden) el.classList.add('hidden-value');
+                    else el.classList.remove('hidden-value');
+                });
+            };
+
+            const generateTable = () => {
+                const numDays = parseInt(numDaysInput.value) || 0;
+                tableBody.innerHTML = '';
+                if (numDays <= 0) return;
+                for (let i = 1; i <= numDays; i++) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${i}</td>
+                        <td class="initial-balance-cell"></td>
+                        <td class="meta-gain-cell"></td>
+                        <td class="input-cell-wrapper">
+                            <button class="adjust-button" data-value="-10">-10</button>
+                            <input type="number" class="daily-result-input" placeholder="Ganho ou Perda">
+                            <button class="adjust-button" data-value="10">+10</button>
+                        </td>
+                        <td class="daily-diff-cell"></td>
+                        <td class="status-cell"></td>
+                        <td class="final-balance-cell"></td>
+                    `;
+                    tableBody.appendChild(row);
+                    const dailyResultInput = row.querySelector('.daily-result-input');
+                    dailyResultInput.addEventListener('input', updateAllCalculations);
+                    row.querySelectorAll('.adjust-button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const value = parseFloat(e.target.getAttribute('data-value'));
+                            const currentValue = parseFloat(dailyResultInput.value) || 0;
+                            dailyResultInput.value = currentValue + value;
+                            updateAllCalculations();
+                        });
+                    });
+                }
+                updateAllCalculations();
+            };
+
+            // Botão Esconder Valores
+            toggleValuesButton.addEventListener('click', () => {
+                valuesHidden = !valuesHidden;
+                updateAllCalculations();
+                toggleValuesButton.textContent = valuesHidden ? 'Mostrar Valores' : 'Esconder Valores';
+            });
+
+            // Notas
+            const saveNote = () => {
+                const title = noteTitleInput.value.trim();
+                const content = noteContentInput.value.trim();
+                if (!title || !content) {
+                    noteStatusMessage.textContent = "Preencha o título e o conteúdo.";
+                    noteStatusMessage.style.color = "#dc3545";
+                    return;
+                }
+                const note = { title, content, date: new Date().toLocaleString() };
+                localStorage.setItem('finance_sim_note', JSON.stringify(note));
+                noteStatusMessage.textContent = "Anotação salva com sucesso!";
+                noteStatusMessage.style.color = "#008000";
+            };
+            const loadNote = () => {
+                const note = localStorage.getItem('finance_sim_note');
+                if (note) {
+                    const obj = JSON.parse(note);
+                    noteTitleInput.value = obj.title;
+                    noteContentInput.value = obj.content;
+                    noteStatusMessage.textContent = `Última anotação salva em ${obj.date}`;
+                    noteStatusMessage.style.color = "#333";
+                } else {
+                    noteTitleInput.value = "";
+                    noteContentInput.value = "";
+                    noteStatusMessage.textContent = "";
+                }
+            };
+            saveNoteButton.addEventListener('click', saveNote);
+
+            // Inputs dinâmica
+            initialBalanceInput.addEventListener('input', generateTable);
+            numDaysInput.addEventListener('input', generateTable);
+            gainRateInput.addEventListener('input', generateTable);
+            lossRateInput.addEventListener('input', generateTable);
+
+            generateTable();
+        });
+    </script>
+</body>
+</html>

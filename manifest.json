@@ -1,0 +1,21 @@
+{
+  "name": "Simulador Financeiro",
+  "short_name": "Simulador",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f4f4",
+  "theme_color": "#0056b3",
+  "description": "Simulador de Juros Compostos e Performance de Metas",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
